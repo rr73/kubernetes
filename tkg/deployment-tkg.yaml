@@ -1,0 +1,169 @@
+apiVersion: v1
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>Russ is the man!!</title>
+    </head>
+    <body>
+        <p>This is Deployment One!<p>
+    </body>
+    </html>
+kind: ConfigMap
+metadata:
+  name: nginx-config1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment1
+spec:
+  selector:
+    matchLabels:
+      app: nginx1
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: nginx1
+    spec:
+      containers:
+      - name: nginx1
+        image: nginx:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 80
+        volumeMounts:
+            - name: nginx-config
+              mountPath: /usr/share/nginx/html #nginx specific
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc1
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx1
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: v1
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>Russ is the man!!</title>
+    </head>
+    <body>
+        <p>This is Deployment two!<p>
+    </body>
+    </html>
+kind: ConfigMap
+metadata:
+  name: nginx-config2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment2
+spec:
+  selector:
+    matchLabels:
+      app: nginx2
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: nginx2
+    spec:
+      containers:
+      - name: nginx2
+        image: nginx:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 80
+        volumeMounts:
+            - name: nginx-config
+              mountPath: /usr/share/nginx/html #nginx specific
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc2
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx2
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nsx-l7-lb
+spec:
+  rules:
+  - host: nginx1.c1cx.com
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: svc1
+            port:
+              number: 80
+  - host: nginx2.c1cx.com
+    http:
+      paths:          
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: svc2
+            port:
+              number: 80
+ 

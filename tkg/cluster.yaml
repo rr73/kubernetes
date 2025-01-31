@@ -1,0 +1,19 @@
+apiVersion: run.tanzu.vmware.com/v1alpha3
+kind: TanzuKubernetesCluster
+metadata:
+  name: tkg-cluster1
+  namespace: russ-playground
+spec:
+  topology:
+    controlPlane:
+      replicas: 3
+      vmClass: guaranteed-medium
+      storageClass: vsan-default-storage-policy
+      tkr:
+        reference:
+          name: v1.25.7---vmware.3-fips.1-tkg.1
+    nodePools:
+    - replicas: 3
+      name: worker
+      vmClass: guaranteed-medium
+      storageClass: vsan-default-storage-policy

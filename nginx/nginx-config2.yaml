@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>Russ is the man!!</title>
+    </head>
+    <body>
+        <p>This is Deployment two!<p>
+    </body>
+    </html>
+kind: ConfigMap
+metadata:
+  name: nginx-config2
