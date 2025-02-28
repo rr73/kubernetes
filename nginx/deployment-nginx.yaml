@@ -40,6 +40,7 @@ spec:
             cpu: "250m"
         ports:
         - containerPort: 80
+        - containerPort: 443 
         volumeMounts:
             - name: nginx-config
               mountPath: /usr/share/nginx/html #nginx specific
@@ -103,6 +104,7 @@ spec:
             cpu: "250m"
         ports:
         - containerPort: 80
+        - containerPort: 443  
         volumeMounts:
             - name: nginx-config
               mountPath: /usr/share/nginx/html #nginx specific
@@ -129,8 +131,13 @@ kind: Ingress
 metadata:
   name: nsx-l7-lb
 spec:
+  tls:
+  - hosts:
+    - lab-wm-1.c1cx.com
+    - lab-wm-2.c1cx.com
+    secretName: tls-secret  # TLS secret for HTTPS
   rules:
-  - host: nginx1.c1cx.com
+  - host: lab-wm-1.c1cx.com
     http:
       paths:
       - path: "/"
@@ -140,7 +147,7 @@ spec:
             name: svc1
             port:
               number: 80
-  - host: nginx2.c1cx.com
+  - host: lab-wm-2.c1cx.com
     http:
       paths:          
       - path: "/"
