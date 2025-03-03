@@ -61,3 +61,64 @@ Ensure that the DNS for lab-wm-1.c1cx.com and lab-wm-2.c1cx.com points to the In
 The Ingress controller must be deployed in your cluster for this setup to work.
 
 If you want to expose the services externally, you can change the type of the services to LoadBalancer or NodePort, depending on your environment.
+
+
+
+
+
+
+Traffic Flow
+Client Request:
+
+A client makes a request to your application (e.g., http://lab-wm-1.c1cx.com or https://lab-wm-1.c1cx.com).
+
+Kemp Load Balancer:
+
+The Kemp Load Balancer intercepts the traffic.
+
+If the request is on HTTP (port 80), the Kemp Load Balancer redirects it to HTTPS (port 443).
+
+If the request is already on HTTPS (port 443), the Kemp Load Balancer forwards it to the Kubernetes Ingress.
+
+Kubernetes Ingress:
+
+The Ingress receives the HTTPS traffic (port 443) from the Kemp Load Balancer.
+
+The Ingress terminates the TLS connection (decrypts the traffic) using the TLS secret.
+
+The decrypted HTTP traffic is forwarded to the appropriate backend service (svc1 or svc2) on port 80.
+
+Backend Services:
+
+The services (svc1 and svc2) receive the HTTP traffic on port 80 and route it to the Nginx pods.
+
+
+
+
+Since the Kemp Load Balancer is already handling the HTTP-to-HTTPS redirection, you only need to ensure that:
+
+The Ingress is configured for TLS:
+
+The Ingress should have the tls section to handle HTTPS traffic.
+
+Example: yaml
+
+
+tls:
+- hosts:
+  - lab-wm-1.c1cx.com
+  - lab-wm-2.c1cx.com
+  secretName: tls-secret
+
+  
+The TLS Secret Exists:
+
+Ensure the TLS secret (tls-secret) is created in your Kubernetes cluster and contains the SSL certificate and private key.
+
+Example command to create the secret:
+
+kubectl create secret tls tls-secret --cert=path/to/tls.crt --key=path/to/tls.key
+
+No HTTP-to-HTTPS Redirect in the Ingress:
+
+Since the Kemp Load Balancer is handling the redirection, you do not need to add the nginx.ingress.kubernetes.io/ssl-redirect: "true" annotation to the Ingress.
